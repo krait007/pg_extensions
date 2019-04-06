@@ -1,0 +1,81 @@
+-- simple input
+SELECT '120'::bigbase36;
+ bigbase36 
+-----------
+ 120
+(1 row)
+
+SELECT '3c'::bigbase36;
+ bigbase36 
+-----------
+ 3c
+(1 row)
+
+-- case insensitivity
+SELECT '3C'::bigbase36;
+ bigbase36 
+-----------
+ 3c
+(1 row)
+
+SELECT 'FoO'::bigbase36;
+ bigbase36 
+-----------
+ foo
+(1 row)
+
+-- invalid characters
+SELECT 'foo bar'::bigbase36;
+ERROR:  invalid input syntax for bigbase36: "foo bar"
+LINE 1: SELECT 'foo bar'::bigbase36;
+               ^
+SELECT 'abc$%2'::bigbase36;
+ERROR:  invalid input syntax for bigbase36: "abc$%2"
+LINE 1: SELECT 'abc$%2'::bigbase36;
+               ^
+-- negative values
+SELECT '-10'::bigbase36;
+ bigbase36 
+-----------
+ -10
+(1 row)
+
+-- to big values
+SELECT 'abcdefghijklmn'::bigbase36;
+ERROR:  value "abcdefghijklmn" is out of range for type bigbase36
+LINE 1: SELECT 'abcdefghijklmn'::bigbase36;
+               ^
+-- storage
+BEGIN;
+CREATE TABLE base36_test(val bigbase36);
+INSERT INTO base36_test VALUES ('123'), ('3c'), ('5A'), ('zZz');
+SELECT * FROM base36_test;
+ val 
+-----
+ 123
+ 3c
+ 5a
+ zzz
+(4 rows)
+
+UPDATE base36_test SET val = '567a' where val = '123';
+SELECT * FROM base36_test;
+ val  
+------
+ 3c
+ 5a
+ zzz
+ 567a
+(4 rows)
+
+UPDATE base36_test SET val = '-aa' where val = '3c';
+SELECT * FROM base36_test;
+ val  
+------
+ 5a
+ zzz
+ 567a
+ -aa
+(4 rows)
+
+ROLLBACK;
